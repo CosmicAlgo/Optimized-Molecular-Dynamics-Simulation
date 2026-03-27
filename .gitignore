@@ -1,0 +1,76 @@
+# ============================================================
+# EXAM-SPECIFIC & SENSITIVE DATA (Never commit to GitHub)
+# ============================================================
+B288585*
+*Assessment*
+*exam*number*
+
+# Account credentials and SLURM scripts with credentials
+run_*_experiments.slurm      # Original scripts with account ID
+run_gnu_experiments.slurm
+run_aocc_experiments.slurm
+run_cray_experiments.slurm
+bench_c.slurm
+*.account
+
+# ============================================================
+# COURSEWORK ARTIFACTS & REPORTS (Keep local, not on GitHub)
+# ============================================================
+*.pdf
+*.PDF
+Coursework1/Report/
+Coursework1/MD/
+*.txt
+*.TXT
+*.tar
+
+# Handout documents
+coursework.pdf
+Coursework*Handout.pdf
+*Assessment*.pdf
+pdf_contents*.txt
+read_pdf.py
+
+# ============================================================
+# BUILD ARTIFACTS & BINARIES
+# ============================================================
+*.o
+*.exe
+*.out
+MD
+diff-output
+*.so
+*.a
+
+# ============================================================
+# IDE & OS FILES
+# ============================================================
+.VSCode*
+.vscode*
+.idea*
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# ============================================================
+# SUBMISSION ARCHIVES (Local only)
+# ============================================================
+*-SUBMISSION.zip
+*-FINAL.zip
+*.zip
+
+# ============================================================
+# COURSEWORK 1 RESULTS (Local only)
+# ============================================================
+results_gnu/
+results_cray/
+results_aocc/
+output.dat*
+log_*.txt
+diff_*.txt
+
+# Local portfolio repos (managed separately)
+portfolio-cw1/
+portfolio-cw2/
+
