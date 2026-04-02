@@ -61,10 +61,12 @@ void evolve(int count, double dt) {
                 + pos[Ycoord][i] * pos[Ycoord][i] 
                 + pos[Zcoord][i] * pos[Zcoord][i];
       
-      r[i] = sqrt(r2);
+      /* Local variable: r[] global array is never read after evolve().
+       * Avoiding the global write saves a cache-line store per particle. */
+      double ri_dist = sqrt(r2);
       
       /* r^3 = r^2 * r avoids calling pow() or extra sqrt() */
-      double r3 = r2 * r[i];
+      double r3 = r2 * ri_dist;
       double factor = GM_central * mass[i] / r3;
       
       f[Xcoord][i] -= factor * pos[Xcoord][i];
@@ -92,6 +94,8 @@ void evolve(int count, double dt) {
       double fxi = f[Xcoord][i];
       double fyi = f[Ycoord][i];
       double fzi = f[Zcoord][i];
+      /* Hoist G*mi: constant across entire inner loop over j */
+      double Gmi = G * mi;
       
       for(j = i + 1; j < Nbody; j++) {
         /* Compute separation vector */
@@ -107,20 +111,20 @@ void evolve(int count, double dt) {
         
         /* Precompute force magnitude: G*m_i*m_j / r^3
          * Using dist2*dist = r^2 * r = r^3, avoids separate pow() call */
-        double force_mag = G * mi * mass[j] / (dist2 * dist);
+        double force_mag = Gmi * mass[j] / (dist2 * dist);
         
         /* Branchless direction: flip sign on collision.
-         * Original used if/else which causes branch misprediction
-         * (~15-20 cycle penalty) at ~50% rate in the inner loop.
          * Normal (attractive): direction = -1, so fxi += (-1)*F*dx => f[i] -= F
          * Collision (repulsive): direction = +1, so fxi += (+1)*F*dx => f[i] += F */
         double direction = -1.0 + 2.0 * (double)(dist < size);
         collisions += (dist < size);
         
-        /* Apply pairwise forces using Newton's third law */
-        double fx = direction * force_mag * dx;
-        double fy = direction * force_mag * dy;
-        double fz = direction * force_mag * dz;
+        /* Fold direction*force_mag into one scalar to reduce
+         * multiplications from 3 (dx,dy,dz) to 1 + 3 FMAs */
+        double dfmag = direction * force_mag;
+        double fx = dfmag * dx;
+        double fy = dfmag * dy;
+        double fz = dfmag * dz;
         
         fxi += fx;
         fyi += fy;
