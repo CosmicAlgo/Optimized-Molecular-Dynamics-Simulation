@@ -1,17 +1,14 @@
 # ============================================================
-# EXAM-SPECIFIC & SENSITIVE DATA (Never commit to GitHub)
+# SLURM scripts with institution-specific account IDs
 # ============================================================
-B288585*
-*Assessment*
-*exam*number*
-
-# Account credentials and SLURM scripts with credentials
-run_*_experiments.slurm      # Original scripts with account ID
 run_gnu_experiments.slurm
 run_aocc_experiments.slurm
 run_cray_experiments.slurm
 bench_c.slurm
 *.account
+
+# Deployment archives (local only)
+archer2_package/
 
 # ============================================================
 # COURSEWORK ARTIFACTS & REPORTS (Keep local, not on GitHub)
@@ -74,3 +71,4 @@ diff_*.txt
 portfolio-cw1/
 portfolio-cw2/
 
+Coursework2/report_cw2/
