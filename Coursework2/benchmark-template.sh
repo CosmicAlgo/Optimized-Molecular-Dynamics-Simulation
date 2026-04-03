@@ -1,6 +1,6 @@
 #!/bin/bash
 # Sanitized benchmark script for portfolio/GitHub
-# (No ARCHER2-specific account ID or student credentials)
+# (No ARCHER2-specific account ID)
 # 
 # For use in public repositories and documentation.
 # Original scripts with actual account IDs are excluded from git.
