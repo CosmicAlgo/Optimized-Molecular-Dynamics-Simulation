@@ -1,36 +1,10 @@
-# ============================================================
-# SLURM scripts with institution-specific account IDs
-# ============================================================
-run_gnu_experiments.slurm
-run_aocc_experiments.slurm
-run_cray_experiments.slurm
-bench_c.slurm
-*.account
-
-# Deployment archives (local only)
+# Coursework artifacts
+Coursework1/
+Coursework2/results/
+Coursework2/report_cw2/
 archer2_package/
 
-# ============================================================
-# COURSEWORK ARTIFACTS & REPORTS (Keep local, not on GitHub)
-# ============================================================
-*.pdf
-*.PDF
-Coursework1/Report/
-Coursework1/MD/
-*.txt
-*.TXT
-*.tar
-
-# Handout documents
-coursework.pdf
-Coursework*Handout.pdf
-*Assessment*.pdf
-pdf_contents*.txt
-read_pdf.py
-
-# ============================================================
-# BUILD ARTIFACTS & BINARIES
-# ============================================================
+# Build artifacts
 *.o
 *.exe
 *.out
@@ -39,36 +13,19 @@ diff-output
 *.so
 *.a
 
-# ============================================================
-# IDE & OS FILES
-# ============================================================
-.VSCode*
-.vscode*
-.idea*
+# IDE files
+.vscode/
+.idea/
 .DS_Store
-Thumbs.db
-*.swp
-*.swo
 
-# ============================================================
-# SUBMISSION ARCHIVES (Local only)
-# ============================================================
-*-SUBMISSION.zip
-*-FINAL.zip
+# Submission archives (keep local)
 *.zip
 
-# ============================================================
-# COURSEWORK 1 RESULTS (Local only)
-# ============================================================
-results_gnu/
-results_cray/
-results_aocc/
+# Output files
 output.dat*
-log_*.txt
-diff_*.txt
+*.txt
+*.tar
 
-# Local portfolio repos (managed separately)
-portfolio-cw1/
-portfolio-cw2/
-
-Coursework2/report_cw2/
+# PDFs and docs
+*.pdf
+Coursework*Handout.pdf
