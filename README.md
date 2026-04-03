@@ -1,8 +1,10 @@
 # Molecular Dynamics Simulation — HPC Performance Optimisation
 
+![MD Simulation](visualization/md_simulation.gif)
+
 A case study in performance engineering applied to an $N$-body molecular dynamics simulation ($N = 4096$ particles, 500 timesteps) running on a single core of the [ARCHER2](https://www.archer2.ac.uk/) supercomputer (AMD EPYC 7742, Zen 2).
 
-**Result: 31.9× speedup** over the unoptimised baseline (874.8 s → 27.4 s), achieved through seven source-level transformations combined with targeted compiler flags — no parallelism used.
+**Result: 31.9× speedup** over the unoptimised baseline (872.8 s → 27.4 s), achieved through nine source-level transformations combined with targeted compiler flags — no parallelism used.
 
 ---
 
