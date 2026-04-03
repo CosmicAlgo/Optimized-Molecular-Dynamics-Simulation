@@ -6,7 +6,7 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --partition=serial
 #SBATCH --qos=serial
-#SBATCH --account=REDACTED
+#SBATCH --account=
 
 # Fast correctness verification (~5 min total):
 # 1. Run original code + production flags  -> reference output (~68s, known correct)

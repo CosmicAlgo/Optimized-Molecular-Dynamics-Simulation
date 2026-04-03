@@ -6,11 +6,10 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --partition=serial
 #SBATCH --qos=serial
-#SBATCH --account=YOUR_ACCOUNT
+#SBATCH --account=
 
 # -------------------------------------------------------
 # Optimized benchmark: optimized code with production flags
-# Submit from: your ARCHER2 work directory containing original/, optimized/, Test/, input.dat
 # -------------------------------------------------------
 
 module load PrgEnv-gnu

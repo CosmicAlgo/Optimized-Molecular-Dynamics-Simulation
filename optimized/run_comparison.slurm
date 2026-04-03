@@ -6,7 +6,7 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --partition=serial
 #SBATCH --qos=serial
-#SBATCH --account=YOUR_ACCOUNT
+#SBATCH --account=
 
 # -------------------------------------------------------
 # Full comparison benchmark:
@@ -16,8 +16,6 @@
 #   4. Optimised code with production flags
 #   5. Original code with production flags (isolate flag effect)
 #   6. Correctness verification for all variants
-#
-# Submit from: your ARCHER2 work directory containing original/, optimized/, Test/, input.dat
 # -------------------------------------------------------
 
 module load PrgEnv-gnu
@@ -30,7 +28,7 @@ NRUNS=5
 
 cd ${CW2}
 
-# Force-create results directory (handle Windows zip creating it as a file)
+# Force-create results directory
 [ -f "${RESULTS}" ] && rm -f "${RESULTS}"
 mkdir -p ${RESULTS}
 
