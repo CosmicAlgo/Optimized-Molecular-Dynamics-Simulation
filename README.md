@@ -111,3 +111,44 @@ cd original && make
 # Correctness checker
 cd Test && make
 ```
+
+---
+
+## 3D Visualization (Manim)
+
+A professional 3D animation of the simulation can be generated using [Manim](https://www.manim.community/) (Mathematical Animation Engine).
+
+### Quick Start
+
+```bash
+# Install Manim
+pip install -r visualization/requirements.txt
+
+# Run simulation to generate trajectory data
+cd optimized
+make && ./MD
+# Creates trajectory.xyz with particle positions
+
+# Generate 3D animation
+manim -pqh visualization/md_visualization.py MDParticleSimulation
+# Output: media/videos/md_visualization/720p30/MDParticleSimulation.mp4
+```
+
+### Features
+
+- **3D particle simulation** with 4096 particles in orbital motion
+- **Real-time camera rotation** showing spatial dynamics
+- **Performance stats overlay** (31.9× speedup highlighted)
+- **Speedup comparison chart** (alternative 2D scene)
+
+See [`visualization/README.md`](visualization/README.md) for detailed usage and embedding in GitHub.
+
+---
+
+## Portfolio
+
+This project demonstrates:
+- **Performance analysis**: profiling with gprof, cache-aware optimization
+- **Low-level optimization**: branchless programming, strength reduction, loop fusion
+- **HPC systems**: ARCHER2, SLURM, compiler toolchains
+- **Visualization**: 3D scientific animation with Manim
