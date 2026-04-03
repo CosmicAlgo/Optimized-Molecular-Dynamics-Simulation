@@ -155,5 +155,8 @@ void evolve(int count, double dt) {
       velo[Ycoord][i] += f[Ycoord][i] * dt_over_mass;
       velo[Zcoord][i] += f[Zcoord][i] * dt_over_mass;
     }
+
+    /* Write trajectory frame for visualization (if enabled) */
+    write_trajectory_frame();
   }
 }

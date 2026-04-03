@@ -45,3 +45,8 @@ DEF int collisions;         /* Collision counter */
 
 /* Function declarations */
 void evolve(int Nstep, double dt);
+
+/* Trajectory output for visualization */
+void write_trajectory_header(int sample_interval);
+void write_trajectory_frame(void);
+void close_trajectory(void);

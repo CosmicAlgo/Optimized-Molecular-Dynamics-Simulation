@@ -2,15 +2,64 @@
  *
  * Control program for the MD update
  * Optimized version for Coursework 2
+ * Exam Number: REDACTED
  *
  */
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
+#include <string.h>
 #define DECL
 #include "coord.h"
 
 double second(void);
+
+/* 
+ * Write particle positions in XYZ format for visualization.
+ * Format: number_of_atoms\ncomment\nAtom x y z (repeated)
+ * Sample_interval controls how often to write (every N timesteps).
+ */
+static FILE *traj_file = NULL;
+static int traj_sample_interval = 0;
+static int timestep_counter = 0;
+
+void write_trajectory_header(int sample_interval) {
+  traj_sample_interval = sample_interval;
+  if(sample_interval > 0) {
+    traj_file = fopen("trajectory.xyz", "w");
+    if(!traj_file) {
+      perror("trajectory.xyz");
+      /* Non-fatal: continue without trajectory */
+      traj_sample_interval = 0;
+    }
+  }
+}
+
+void write_trajectory_frame() {
+  int i;
+  if(!traj_file || traj_sample_interval <= 0) return;
+  
+  timestep_counter++;
+  if(timestep_counter % traj_sample_interval != 0) return;
+  
+  /* Write frame in XYZ format */
+  fprintf(traj_file, "%d\n", Nbody);
+  fprintf(traj_file, "Frame %d, collisions: %d\n", timestep_counter, collisions);
+  
+  for(i = 0; i < Nbody; i++) {
+    /* Use "Ar" (Argon) as particle type - generic for MD visualization */
+    fprintf(traj_file, "Ar %12.6f %12.6f %12.6f\n",
+            pos[Xcoord][i], pos[Ycoord][i], pos[Zcoord][i]);
+  }
+  fflush(traj_file);
+}
+
+void close_trajectory() {
+  if(traj_file) {
+    fclose(traj_file);
+    traj_file = NULL;
+  }
+}
 
 int main(int argc, char *argv[]) {
   int i, j;
@@ -66,6 +115,10 @@ int main(int argc, char *argv[]) {
   /* Initialize collision counter */
   collisions = 0;
   
+  /* Initialize trajectory output for visualization (sample every 5 timesteps) */
+  /* Set to 0 to disable trajectory output and reduce I/O overhead */
+  write_trajectory_header(5);
+  
   /* Read initial particle data from file */
   in = fopen("input.dat", "r");
   if(!in) {
@@ -116,6 +169,9 @@ int main(int argc, char *argv[]) {
   
   tstop = second();
   printf("Total: %d timesteps took %f seconds\n", Nsave * Nstep, tstop - tstart);
+  
+  /* Close trajectory file if opened */
+  close_trajectory();
 
   return 0;
 }
