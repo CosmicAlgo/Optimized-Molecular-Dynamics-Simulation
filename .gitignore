@@ -25,6 +25,8 @@ diff-output
 output.dat*
 *.txt
 *.tar
+trajectory*.xyz
+stats*.csv
 
 # PDFs and docs
 *.pdf
