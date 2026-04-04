@@ -238,8 +238,7 @@ def make_animation(xyz_path=None, n_frames=120, fps=24, view="top"):
     fig.text(0.5, 0.955, subtitle,
              ha="center", va="top", color="#aaaaaa", fontsize=10)
     fig.text(0.5, 0.928,
-             "Optimised code: 31.9\u00d7 faster  \u2014  "
-             "27.4 s vs 872.8 s  (ARCHER2, AMD EPYC 7742, Zen 2)",
+             "31.9× speedup: 27.4s vs 872.8s (500 steps, ARCHER2, AMD EPYC 7742)",
              ha="center", va="top", color="#ffdd44", fontsize=10)
 
     # Faint radial guide rings
