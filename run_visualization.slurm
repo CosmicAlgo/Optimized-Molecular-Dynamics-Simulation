@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=md_viz
-#SBATCH --time=00:10:00
+#SBATCH --time=00:20:00
 #SBATCH --nodes=1
 #SBATCH --tasks-per-node=1
 #SBATCH --cpus-per-task=1
@@ -9,21 +9,29 @@
 #SBATCH --account=
 
 # -------------------------------------------------------
-# Visualization run: generates trajectory.xyz for Manim
-# 
-# This script runs the optimized MD code to generate
-# particle trajectory data for 3D visualization.
-# 
-# Output: trajectory.xyz (XYZ format, sampled every 5 timesteps)
-# 
-# After completion:
-#   1. Download trajectory.xyz to your laptop
-#   2. Run: manim -pqh visualization/md_visualization.py MDParticleSimulation
+# Visualization data collection run
+#
+# Runs the optimised MD code for 10,000 timesteps to generate
+# rich trajectory data for 3D portfolio visualization.
+#
+# Outputs (all in optimized/ directory after run):
+#   trajectory.xyz  — extended XYZ: x y z vx vy vz per particle,
+#                     200 frames sampled every 50 steps (~65 MB)
+#   stats.csv       — timestep, KE, collision count per frame
+#
+# After job completes, download both files:
+#   scp login.archer2.ac.uk:/path/to/optimized/trajectory.xyz visualization/
+#   scp login.archer2.ac.uk:/path/to/optimized/stats.csv       visualization/
+#
+# Then render the visualization locally:
+#   python visualization/visualize_md.py \
+#       --input visualization/trajectory.xyz \
+#       --stats visualization/stats.csv \
+#       --output visualization/md_simulation.gif
 # -------------------------------------------------------
 
 module load PrgEnv-gnu
 
-# Change to submission directory
 cd $SLURM_SUBMIT_DIR
 
 echo "=========================================="
@@ -31,31 +39,36 @@ echo "MD Visualization Run"
 echo "Start: $(date)"
 echo "=========================================="
 
-# Build optimized code
-echo "Building optimized code..."
+# Build
+echo ""
+echo "Building optimised code..."
 cd optimized
 make clean
 make
+echo "Build complete."
 
-# Run simulation (500 timesteps = full run)
-# This generates trajectory.xyz
+# Run — 10,000 timesteps (Nstep=1000, Nsave=10 hardcoded in control.c)
+# Expected runtime: ~9 minutes on one ARCHER2 core
 echo ""
-echo "Running simulation (500 timesteps)..."
-echo "Trajectory sampled every 5 timesteps"
+echo "Running simulation: 10,000 timesteps (dt=0.02, total time=200)"
+echo "Trajectory sampled every 50 steps -> 200 animation frames"
 echo ""
+time ./MD
 
-./MD
-
-# Check output
+# Report outputs
 echo ""
 echo "=========================================="
 echo "Run complete: $(date)"
 echo "=========================================="
 echo ""
 echo "Output files:"
-ls -lh trajectory.xyz 2>/dev/null && echo "  ✓ trajectory.xyz ready for download" || echo "  ✗ trajectory.xyz not found"
+ls -lh trajectory.xyz 2>/dev/null \
+    && echo "  ✓ trajectory.xyz  (extended XYZ with velocities)" \
+    || echo "  ✗ trajectory.xyz  NOT FOUND"
+ls -lh stats.csv 2>/dev/null \
+    && echo "  ✓ stats.csv       (KE + collision count per frame)" \
+    || echo "  ✗ stats.csv       NOT FOUND"
 echo ""
-echo "Next steps:"
-echo "  1. Download trajectory.xyz to your laptop"
-echo "  2. Install Manim: pip install manim"
-echo "  3. Generate video: manim -pqh visualization/md_visualization.py MDParticleSimulation"
+echo "Download commands (run on your laptop):"
+echo "  scp \${USER}@login.archer2.ac.uk:\$(pwd)/trajectory.xyz visualization/"
+echo "  scp \${USER}@login.archer2.ac.uk:\$(pwd)/stats.csv       visualization/"
