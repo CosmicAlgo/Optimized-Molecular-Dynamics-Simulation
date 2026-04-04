@@ -95,12 +95,6 @@ The `Test/diff-output` utility computes per-field relative error between simulat
 
 ---
 
-## Report
-
-The full write-up (methodology, profiling analysis, per-optimisation discussion, results, code quality) is in [`Coursework2/report_cw2/report.tex`](Coursework2/report_cw2/report.tex).
-
----
-
 ## Build
 
 ```bash
