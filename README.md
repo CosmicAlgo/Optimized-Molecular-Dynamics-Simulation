@@ -130,14 +130,29 @@ manim -pqh visualization/md_visualization.py MDParticleSimulation
 # Output: media/videos/md_visualization/720p30/MDParticleSimulation.mp4
 ```
 
-### Features
+## Visualizations
 
-- **3D particle simulation** with 4096 particles in orbital motion
-- **Real-time camera rotation** showing spatial dynamics
-- **Performance stats overlay** (31.9× speedup highlighted)
-- **Speedup comparison chart** (alternative 2D scene)
+Generated from a 50,000-timestep ARCHER2 run with real particle positions and velocities.
 
-See [`visualization/README.md`](visualization/README.md) for detailed usage and embedding in GitHub.
+| View | Animation |
+|------|-----------|
+| **Top-down** | ![Top view](visualization/md_simulation.gif) |
+| **3D Isometric** | ![Isometric](visualization/md_simulation_iso.gif) |
+| **Rotating Camera** | ![Rotating](visualization/md_simulation_rotate.gif) |
+
+The particles form a flat disk (Z≈0) due to the physics — the 3D views add artificial depth for visual appeal. Colour = particle speed (hot colormap). Stats plots showing KE and collision rate are also generated.
+
+### Generate your own
+
+```bash
+python visualization/visualize_md.py \
+    --input visualization/trajectory.xyz \
+    --stats visualization/stats.csv \
+    --output visualization/my_animation.gif \
+    --view iso --frames 250 --fps 30
+```
+
+Views: `top` (2D), `iso` (3D isometric), `rotate` (slow camera orbit)
 
 ---
 
@@ -146,5 +161,6 @@ See [`visualization/README.md`](visualization/README.md) for detailed usage and 
 This project demonstrates:
 - **Performance analysis**: profiling with gprof, cache-aware optimization
 - **Low-level optimization**: branchless programming, strength reduction, loop fusion
-- **HPC systems**: ARCHER2, SLURM, compiler toolchains
-- **Visualization**: 3D scientific animation with Manim
+- **HPC systems**: ARCHER2, SLURM, compiler toolchains  
+- **Scientific computing**: gravitational dynamics + collision physics
+- **Data visualization**: matplotlib 3D animation from raw simulation output

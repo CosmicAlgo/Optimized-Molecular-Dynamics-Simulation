@@ -24,6 +24,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+from mpl_toolkits.mplot3d import Axes3D
 
 # ── Physics constants — match coord.h exactly ────────────────────────────────
 G          = 2.0
@@ -34,6 +35,7 @@ N_PARTICLES = 4096
 TRAIL_LEN   = 12    # number of past frames shown as fading trail
 R_MIN       = 60.0
 R_MAX       = 1700.0
+DISK_THICKNESS = 30.0  # artificial Z spread for 3D view (simulation is flat)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -135,8 +137,9 @@ def xy_at(r, phi0, omega, t):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-def make_animation(xyz_path=None, n_frames=120, fps=24):
+def make_animation(xyz_path=None, n_frames=120, fps=24, view="top"):
     using_real_data = xyz_path is not None
+    is_3d = view in ("iso", "rotate")
 
     if using_real_data:
         print(f"  Loading trajectory: {xyz_path}")
@@ -148,6 +151,13 @@ def make_animation(xyz_path=None, n_frames=120, fps=24):
             n_frames = min(n_frames, len(frames_xy))
             frames_xy    = frames_xy[:n_frames]
             frames_speed = frames_speed[:n_frames]
+            # For 3D view, add slight Z jitter based on particle index (real data has Z=0)
+            if is_3d:
+                rng = np.random.default_rng(42)
+                z_jitter = rng.uniform(-DISK_THICKNESS/2, DISK_THICKNESS/2, len(frames_xy[0]))
+                frames_xy = [np.column_stack([xy, np.full(len(xy), z_jitter[i])]) for i, xy in enumerate(frames_xy)]
+            else:
+                frames_xy = [np.column_stack([xy, np.zeros(len(xy))]) for xy in frames_xy]
 
     if not using_real_data:
         print("  Generating synthetic Keplerian trajectory …")
@@ -159,7 +169,10 @@ def make_animation(xyz_path=None, n_frames=120, fps=24):
         frames_xy, frames_speed = [], []
         for fi in range(n_frames):
             all_x, all_y = xy_at(r, phi0, omega, fi * dt)
-            frames_xy.append(np.column_stack([all_x, all_y]))
+            # Add slight Z spread for 3D visual depth
+            rng = np.random.default_rng(fi)
+            z = rng.uniform(-DISK_THICKNESS/2, DISK_THICKNESS/2, len(all_x)) if is_3d else np.zeros(len(all_x))
+            frames_xy.append(np.column_stack([all_x, all_y, z]))
             frames_speed.append(v_synth)
         meta = [{"frame": fi * 5, "KE": 0.0, "collisions": 0}
                 for fi in range(n_frames)]
@@ -180,17 +193,37 @@ def make_animation(xyz_path=None, n_frames=120, fps=24):
 
     all_c = [norm_speed(s) for s in frames_speed]
 
+    view_label = "3D isometric" if view == "iso" else ("rotating 3D" if view == "rotate" else "top-down")
     data_label = "ARCHER2 trajectory" if using_real_data else "Keplerian orbital mechanics"
-    print(f"  Data: {data_label}  |  Axis ±{lim:.0f}  |  "
+    print(f"  Data: {data_label}  |  View: {view_label}  |  "
           f"{n_frames} frames  |  {len(frames_xy[0])} particles/frame")
 
     # ── Figure ────────────────────────────────────────────────────────────────
-    fig, ax = plt.subplots(figsize=(9, 9), facecolor="#000000")
-    ax.set_facecolor("#000000")
-    ax.set_aspect("equal")
-    ax.set_xlim(-lim, lim)
-    ax.set_ylim(-lim, lim)
-    ax.axis("off")
+    if is_3d:
+        fig = plt.figure(figsize=(10, 9), facecolor="#000000")
+        ax = fig.add_subplot(111, projection='3d')
+        ax.set_facecolor("#000000")
+        ax.set_xlim(-lim, lim)
+        ax.set_ylim(-lim, lim)
+        ax.set_zlim(-lim*0.6, lim*0.6)
+        ax.set_xlabel("X", color="#666666", fontsize=8)
+        ax.set_ylabel("Y", color="#666666", fontsize=8)
+        ax.set_zlabel("Z", color="#666666", fontsize=8)
+        ax.tick_params(colors="#444444", labelsize=7)
+        ax.xaxis.pane.fill = False
+        ax.yaxis.pane.fill = False
+        ax.zaxis.pane.fill = False
+        ax.xaxis.pane.set_edgecolor("#222222")
+        ax.yaxis.pane.set_edgecolor("#222222")
+        ax.zaxis.pane.set_edgecolor("#222222")
+        ax.grid(color="#222222", linestyle="-", linewidth=0.3)
+    else:
+        fig, ax = plt.subplots(figsize=(9, 9), facecolor="#000000")
+        ax.set_facecolor("#000000")
+        ax.set_aspect("equal")
+        ax.set_xlim(-lim, lim)
+        ax.set_ylim(-lim, lim)
+        ax.axis("off")
     fig.subplots_adjust(left=0.02, right=0.98, top=0.88, bottom=0.02)
 
     # Labels
@@ -212,31 +245,54 @@ def make_animation(xyz_path=None, n_frames=120, fps=24):
     # Faint radial guide rings
     for ring_frac in [0.25, 0.5, 0.75, 1.0]:
         rg = lim * ring_frac
-        ax.add_patch(plt.Circle((0, 0), rg, color="#111111",
-                                fill=False, linewidth=0.6, zorder=1))
+        if is_3d:
+            # 3D circles at Z=0 plane
+            theta = np.linspace(0, 2*np.pi, 100)
+            ax.plot(rg*np.cos(theta), rg*np.sin(theta), np.zeros_like(theta),
+                    color="#222222", linewidth=0.6, zorder=1)
+        else:
+            ax.add_patch(plt.Circle((0, 0), rg, color="#111111",
+                                    fill=False, linewidth=0.6, zorder=1))
 
     # Central mass — layered glow
     for sz, al in [(3500, 0.03), (900, 0.10), (250, 0.40), (60, 1.00)]:
-        ax.scatter([0], [0], s=sz, c="#ffcc00", alpha=al,
-                   zorder=6, linewidths=0)
+        if is_3d:
+            ax.scatter([0], [0], [0], s=sz, c="#ffcc00", alpha=al,
+                       zorder=6, linewidths=0, depthshade=True)
+        else:
+            ax.scatter([0], [0], s=sz, c="#ffcc00", alpha=al,
+                       zorder=6, linewidths=0)
 
     # ── Trail scatters (one per lag, decreasing alpha) ────────────────────────
     trail_scats = []
     for k in range(TRAIL_LEN):
         alpha = 0.30 * (1.0 - k / TRAIL_LEN) ** 1.5
-        ts = ax.scatter([], [], s=0.7, c=[], cmap="hot",
-                        vmin=0, vmax=1, alpha=alpha,
-                        linewidths=0, zorder=2)
+        if is_3d:
+            ts = ax.scatter([], [], [], s=0.7, c=[], cmap="hot",
+                            vmin=0, vmax=1, alpha=alpha,
+                            linewidths=0, zorder=2, depthshade=False)
+        else:
+            ts = ax.scatter([], [], s=0.7, c=[], cmap="hot",
+                            vmin=0, vmax=1, alpha=alpha,
+                            linewidths=0, zorder=2)
         trail_scats.append(ts)
 
     # ── Main particle scatter ─────────────────────────────────────────────────
     pos0 = frames_xy[0]
-    main_scat = ax.scatter(
-        pos0[:, 0], pos0[:, 1],
-        c=all_c[0], cmap="hot",
-        s=2.5, alpha=0.90, linewidths=0,
-        vmin=0, vmax=1, zorder=3,
-    )
+    if is_3d:
+        main_scat = ax.scatter(
+            pos0[:, 0], pos0[:, 1], pos0[:, 2],
+            c=all_c[0], cmap="hot",
+            s=2.5, alpha=0.90, linewidths=0,
+            vmin=0, vmax=1, zorder=3, depthshade=False,
+        )
+    else:
+        main_scat = ax.scatter(
+            pos0[:, 0], pos0[:, 1],
+            c=all_c[0], cmap="hot",
+            s=2.5, alpha=0.90, linewidths=0,
+            vmin=0, vmax=1, zorder=3,
+        )
 
     # Colourbar
     sm = plt.cm.ScalarMappable(
@@ -249,24 +305,46 @@ def make_animation(xyz_path=None, n_frames=120, fps=24):
     plt.setp(cbar.ax.yaxis.get_ticklabels(), color="white", fontsize=8)
 
     # Info text
-    ts_text = ax.text(0.02, 0.02, "",
+    if is_3d:
+        ts_text = ax.text2D(0.02, 0.02, "",
+                          transform=ax.transAxes, color="#555555",
+                          fontsize=9, va="bottom")
+    else:
+        ts_text = ax.text(0.02, 0.02, "",
                       transform=ax.transAxes, color="#555555",
                       fontsize=9, va="bottom")
 
     # ── Update function ───────────────────────────────────────────────────────
     def update(fi):
         pos = frames_xy[fi]
-        main_scat.set_offsets(pos)
-        main_scat.set_array(all_c[fi])
+        if is_3d:
+            main_scat._offsets3d = (pos[:, 0], pos[:, 1], pos[:, 2])
+            main_scat.set_array(all_c[fi])
+        else:
+            main_scat.set_offsets(pos[:, :2])
+            main_scat.set_array(all_c[fi])
 
         for k, ts in enumerate(trail_scats):
             lag = k + 1
             if fi >= lag:
                 pts = frames_xy[fi - lag]
-                ts.set_offsets(pts)
-                ts.set_array(all_c[fi - lag])
+                if is_3d:
+                    ts._offsets3d = (pts[:, 0], pts[:, 1], pts[:, 2])
+                    ts.set_array(all_c[fi - lag])
+                else:
+                    ts.set_offsets(pts[:, :2])
+                    ts.set_array(all_c[fi - lag])
             else:
-                ts.set_offsets(np.empty((0, 2)))
+                if is_3d:
+                    ts._offsets3d = ([], [], [])
+                else:
+                    ts.set_offsets(np.empty((0, 2)))
+
+        # Rotate camera for "rotate" view
+        if view == "rotate" and is_3d:
+            elev = 20 + 10 * np.sin(fi * 2 * np.pi / n_frames)
+            azim = 45 + 360 * fi / n_frames
+            ax.view_init(elev=elev, azim=azim)
 
         m = meta[fi]
         info = f"Step {m['frame']}  |  collisions: {m['collisions']}"
@@ -330,7 +408,9 @@ def main():
                         help="stats.csv from ARCHER2 (optional, makes KE plot)")
     parser.add_argument("--output", "-o", default="visualization/md_simulation.gif")
     parser.add_argument("--frames", "-n", type=int, default=120)
-    parser.add_argument("--fps",          type=int, default=24)
+    parser.add_argument("--fps", type=int, default=24)
+    parser.add_argument("--view", "-v", default="top", choices=["top", "iso", "rotate"],
+                        help="view mode: top (2D overhead), iso (3D isometric), rotate (slow camera orbit)")
     args = parser.parse_args()
 
     # Optional: render KE / collision stats plot
@@ -338,9 +418,9 @@ def main():
         base = args.output.rsplit(".", 1)[0]
         make_stats_plot(args.stats, base + "_stats.png")
 
-    print(f"Building animation: {args.frames} frames @ {args.fps} fps")
+    print(f"Building animation: {args.frames} frames @ {args.fps} fps, view='{args.view}'")
     anim, fig = make_animation(
-        xyz_path=args.input, n_frames=args.frames, fps=args.fps
+        xyz_path=args.input, n_frames=args.frames, fps=args.fps, view=args.view
     )
 
     out = args.output

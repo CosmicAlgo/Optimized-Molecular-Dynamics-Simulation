@@ -90,8 +90,9 @@ int main(int argc, char *argv[]) {
   double dt = 0.02;
   
   /* Number of timesteps to use */
-  /* 10000 total steps: enough for viscous evolution and visible orbital motion */
-  int Nstep = 1000;
+  /* Scaled: 50,000 total steps for richer viscous evolution */
+  /* Nstep * Nsave = total timesteps. Sampling every 200 steps -> 250 frames for GIF */
+  int Nstep = 5000;
   int Nsave = 10;
   
   if(argc > 1) {
@@ -134,9 +135,9 @@ int main(int argc, char *argv[]) {
   /* Initialize collision counter */
   collisions = 0;
   
-  /* Initialize trajectory output: sample every 50 steps -> 200 frames over 10000 steps */
+  /* Initialize trajectory output: sample every 200 steps -> ~250 animation frames over 50,000 steps */
   /* Set to 0 to disable trajectory output and reduce I/O overhead */
-  write_trajectory_header(50);
+  write_trajectory_header(200);
   
   /* Read initial particle data from file */
   in = fopen("input.dat", "r");
